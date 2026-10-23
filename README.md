@@ -2,115 +2,166 @@
 This is a functional script/agent that programmatically publishes a video Reel to an Instagram Business account using the official Meta Graph API.
 # Automated Instagram Reel Posting Agent
 
-A small Python CLI that publishes a Reel to an Instagram **Business or Creator** account using Meta's official Graph API. It creates a media container, polls processing status, then publishes the container.
+## 1. Project Overview
 
-## What it does
+The **Automated Instagram Reel Posting Agent** is a Python-based project that uses the Instagram API to automate the process of publishing Instagram Reels.
 
-1. Reads credentials from `.env` (never hard-code tokens).
-2. Creates a Reel container with `media_type=REELS`.
-3. Polls the container until `status_code=FINISHED`, or exits on an error/timeout.
-4. Calls `/{ig-user-id}/media_publish`.
-5. Prints the resulting Instagram media ID and useful API errors.
+The application connects to an Instagram Creator account, uploads a video using a publicly accessible video URL, checks the video processing status, and publishes the Reel to the account.
 
-## Prerequisites
+This project demonstrates API integration, environment variable management, HTTP requests, error handling, and automation using Python.
 
-- An Instagram **Professional** account (Business or Creator).
-- For the Facebook Login flow used here, the Instagram professional account must be linked to a Facebook Page.
-- A Meta developer app configured for the Instagram Graph API.
-- An access token with the required permissions approved/granted for the account, typically `instagram_basic`, `instagram_content_publish`, `pages_show_list`, and `pages_read_engagement` for the Facebook Login flow. Exact requirements depend on the app/login setup and current Meta documentation.
-- Instagram account ID (`IG_USER_ID`) and an appropriate access token.
-- A video hosted at a **publicly accessible HTTPS URL**. Meta fetches the video from its servers; a local path such as `./reel.mp4` will not work with this `video_url` flow.
+## 2. Objectives
 
-Official references:
-- Meta's Instagram API collection: https://www.postman.com/meta/instagram/documentation/6yqw8pt/instagram-api
-- Meta content publishing docs: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/content-publishing/
+- Connect a Python application to the Instagram API.
+- Authenticate requests using an Instagram access token.
+- Create a media container for a Reel.
+- Check whether the video has finished processing.
+- Publish the Reel through the API.
+- Keep credentials separate from the source code.
 
-## Setup
+## 3. Technologies Used
 
-### 1. Create a virtual environment and install dependencies
+- **Programming language:** Python
+- **API:** Instagram API with Instagram Login
+- **HTTP requests:** `requests`
+- **Environment configuration:** `python-dotenv`
+- **Development environment:** Visual Studio Code
 
-Python 3.10+ recommended.
+## 4. Project Workflow
+
+1. Load the Instagram access token and configuration from the `.env` file.
+2. Verify the API connection and retrieve the Instagram account details.
+3. Send the video URL and caption to the Instagram API to create a Reel media container.
+4. Check the container status until video processing is complete.
+5. Publish the processed Reel using its container ID.
+6. Verify the published Reel on the Instagram profile.
+
+## 5. Project Structure
+
+```text
+AI project/
+├── .env                    # Private credentials; do not submit
+├── .env.example            # Example configuration with placeholders
+├── .gitignore              # Excludes secrets and temporary files
+├── main.py                 # Main application entry point
+├── requirements.txt        # Python dependencies
+├── README.md               # Project documentation
+├── test_connection.py      # Tests the API connection
+├── test_reel_upload.py     # Creates a Reel media container
+├── check_reel_status.py    # Checks video processing status
+└── publish_reel.py         # Publishes the Reel
+```
+
+Additional video files may be stored locally for testing.
+
+## 6. Prerequisites
+
+Before running the project, ensure you have:
+
+- Python installed.
+- An Instagram account eligible for the required API functionality.
+- An app configured for Instagram API with Instagram Login.
+- A valid Instagram access token with the necessary permissions.
+- A publicly accessible video URL supported by the API.
+- Internet connectivity.
+
+## 7. Installation and Setup
+
+### Step 1: Install dependencies
+
+Open a terminal in the project directory and run:
 
 ```bash
-python -m venv .venv
-# macOS/Linux:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
-
 pip install -r requirements.txt
 ```
 
-### 2. Configure credentials
+### Step 2: Configure environment variables
+
+Create a `.env` file based on `.env.example` and enter your own valid credentials and video URL.
+
+Example `.env.example`:
+
+```env
+INSTAGRAM_ACCESS_TOKEN=your_access_token_here
+INSTAGRAM_USER_ID=your_instagram_user_id_here
+META_GRAPH_API_VERSION=v25.0
+IG_VIDEO_URL=https://example.com/your-video.mp4
+```
+
+Replace the example values with valid configuration values before running the application. The video URL must point to a publicly accessible video file that meets Instagram's media requirements.
+
+**Security note:** Never commit your real `.env` file or expose your access token in screenshots, source control, or project documentation.
+
+### Step 3: Test the connection
 
 ```bash
-cp .env.example .env
+python test_connection.py
 ```
 
-On Windows, copy `.env.example` to `.env` manually if `cp` is unavailable. Edit `.env` and replace the placeholders:
+Confirm that the API returns the expected Instagram account information.
 
-- `IG_USER_ID`: the Instagram professional account ID used by the API.
-- `META_ACCESS_TOKEN`: your valid Meta access token.
-- `META_GRAPH_API_VERSION`: API version enabled for your Meta app; default is `v25.0` in this sample. Change it if your app is pinned to another supported version.
-- `IG_CAPTION`: optional default caption.
+## 8. Running the Application
 
-**Do not commit `.env`, paste tokens into chat, or include tokens in screenshots/submissions.** This project does not generate credentials or bypass Meta permissions.
-
-### 3. Publish a Reel
+### Create a Reel container
 
 ```bash
-python main.py --video-url "https://your-public-host.example/reel.mp4" \
-  --caption "A new Reel! #reels"
+python test_reel_upload.py
 ```
 
-Use the default caption in `.env` by omitting `--caption`:
+This sends the video URL and caption to the API and creates a media container. It does not publish the Reel.
+
+Save the returned container ID for the following steps.
+
+### Check processing status
 
 ```bash
-python main.py --video-url "https://your-public-host.example/reel.mp4"
+python check_reel_status.py
 ```
 
-To avoid sharing the Reel to the main feed (if supported for your account/API version):
+Use the container ID returned by the upload step. Wait until the API reports that processing is complete (`FINISHED`).
+
+### Publish the Reel
 
 ```bash
-python main.py --video-url "https://your-public-host.example/reel.mp4" --no-feed
+python publish_reel.py
 ```
 
-The script makes a **real publish request**. Test first with a suitable test account and video. There is no dry-run mode.
+Use the same container ID. A successful API response should return the published media ID. Verify the Reel on the Instagram profile.
 
-## Video and API notes
+**Note:** The current scripts are run manually in sequence. Scheduled or unattended posting would require additional scheduling, status polling, and error-recovery logic.
 
-- Use a supported MP4/MOV video with compatible video/audio codecs, dimensions, frame rate, duration, and file size. Check the current Meta docs for limits before posting.
-- The URL must be publicly reachable by Meta and remain available while processing.
-- Video processing may take several minutes; the polling interval and timeout are configurable.
-- Publishing may fail if the token is expired, permissions are missing, the account isn't professional/linked correctly, the API version is unavailable, or Meta's publishing limit is reached.
-- If the script times out, inspect the container status in Meta before rerunning; don't blindly retry an uncertain publish.
-- Keep API versions current and confirm exact permission requirements in Meta's official documentation.
-- This is a CLI publisher, not a persistent scheduler. For scheduled posting, run it from cron/Task Scheduler or add a queue/worker and secure token management.
+## 9. Error Handling and Troubleshooting
 
-## Troubleshooting
+- **HTTP 400:** Check the endpoint, account ID, request parameters, video URL, and permissions.
+- **Authentication errors:** Verify that the access token is valid and has the required permissions.
+- **Processing errors:** Check the video format, accessibility, and API status response.
+- **Container still processing:** Wait before attempting to publish.
+- **Missing configuration:** Confirm that the `.env` file exists and that variable names match the Python code.
 
-- **OAuth/access token error**: generate a token for the correct app/account and verify required permissions.
-- **Unsupported get request / invalid IG user ID**: confirm you are using the Instagram professional account ID, not a username or Facebook Page ID.
-- **Invalid video URL**: open the URL in a private browser window to verify it is publicly reachable without cookies/login.
-- **Container ERROR**: inspect the API's returned message and verify media format/limits.
-- **Permission error**: ensure the app has the necessary permissions and, for non-role accounts, any required App Review / access level.
+Avoid printing or sharing access tokens when troubleshooting.
 
-## Project structure
+## 10. Results
 
-```text
-instagram_reel_agent/
-├── main.py
-├── .env.example
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
+The project successfully demonstrated the following workflow:
 
-## Deadline hand-in checklist
+- Connected to the configured Instagram Creator account.
+- Created a Reel media container using a video URL.
+- Confirmed that the container reached the `FINISHED` status.
+- Published the Reel through the Instagram API.
+- Verified that the Reel appeared on the Instagram profile.
 
-- [ ] Install dependencies successfully.
-- [ ] Configure your own Meta credentials in `.env`.
-- [ ] Confirm the account is Business/Creator and linked to the right Facebook Page for this login flow.
-- [ ] Verify the video URL is public and compatible.
-- [ ] Publish a test Reel and save the terminal output with the token redacted.
-- [ ] Include the repository/project files, not `.env`.
+## 11. Future Enhancements
+
+- Add automatic scheduling for posts.
+- Implement retry logic and structured logging.
+- Add automated processing-status polling.
+- Store publishing history and error reports.
+- Support multiple videos and captions through a queue.
+- Add notifications after successful or failed publishing.
+
+## 12. Conclusion
+
+This project demonstrates how Python can integrate with the Instagram API to automate Reel publishing. It provides practical experience with API authentication, HTTP requests, media processing workflows, environment configuration, and error handling.
+
+The project can be extended into a scheduled content-publishing system with additional automation and monitoring features.
+
