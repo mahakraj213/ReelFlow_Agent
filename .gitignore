@@ -1,3 +1,4 @@
+@'
 .env
 .env.*
 !.env.example
@@ -6,3 +7,4 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+'@ | Set-Content -Encoding utf8 .gitignore
